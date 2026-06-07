@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Bingo - Edição Vencedor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --neon: #f59e0b; }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .globo-orb { width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #3b82f6, #000); box-shadow: inset 0 0 50px rgba(0,0,0,0.5), 0 0 30px rgba(59, 130, 246, 0.3); display: flex; align-items: center; justify-content: center; }
+        .marked { background: var(--neon) !important; transform: scale(0.9); box-shadow: 0 0 15px var(--neon); }
+        #modal-vitoria { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 100; }
+    </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen p-4 font-sans">
+
+    <!-- Modal de Vitória -->
+    <div id="modal-vitoria" class="glass">
+        <div class="text-center p-10 animate-bounce">
+            <h2 class="text-6xl font-black text-yellow-500 mb-4">PARABÉNS!</h2>
+            <p class="text-2xl" id="vencedor-nome">Você Venceu!</p>
+            <button onclick="location.reload()" class="mt-8 px-8 py-3 bg-yellow-500 text-black font-bold rounded-full">JOGAR NOVAMENTE</button>
+        </div>
+    </div>
+
+    <div id="app" class="max-w-md mx-auto">
+        <!-- O conteúdo permanece igual, apenas adicionei a função de checagem -->
+        <div id="menu" class="h-screen flex flex-col justify-center items-center space-y-6">
+            <h1 class="text-5xl font-black italic">NEXUS<span class="text-yellow-500">BINGO</span></h1>
+            <button onclick="iniciarMestre()" class="w-full py-4 border-2 border-blue-500 rounded-full font-bold hover:bg-blue-500">PAINEL DO MESTRE</button>
+            <button onclick="iniciarJogador()" class="w-full py-4 border-2 border-emerald-500 rounded-full font-bold hover:bg-emerald-500">ENTRAR COMO JOGADOR</button>
+        </div>
+
+        <div id="mestre-view" class="hidden pt-10 flex flex-col items-center">
+            <div class="globo-orb mb-10"><div id="display-bola" class="text-6xl font-black">--</div></div>
+            <button id="btn-sortear" onclick="sortear()" class="bg-yellow-600 px-12 py-4 rounded-full font-black text-xl">RODAR ESFERA</button>
+            <div id="historico" class="mt-8 grid grid-cols-6 gap-2 w-full"></div>
+        </div>
+
+        <div id="jogador-view" class="hidden pt-10">
+            <div id="setup-jogador" class="space-y-4">
+                <input type="text" id="nome-jogador" placeholder="Seu Nome de Piloto" class="w-full p-4 bg-slate-900 border border-slate-700 rounded-xl outline-none">
+                <div id="lista-cartelas" class="grid grid-cols-2 gap-4"></div>
+            </div>
+            <div id="cartela-ativa" class="hidden">
+                <h2 id="titulo-cartela" class="text-center font-bold text-yellow-500 mb-4"></h2>
+                <div id="grid-numeros" class="grid grid-cols-5 gap-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let bolas = Array.from({length: 75}, (_, i) => i + 1);
+
+        function iniciarMestre() { document.getElementById('menu').classList.add('hidden'); document.getElementById('mestre-view').classList.remove('hidden'); }
+        
+        function sortear() {
+            const display = document.getElementById('display-bola');
+            const idx = Math.floor(Math.random() * bolas.length);
+            const num = bolas.splice(idx, 1)[0];
+            display.innerText = num;
+            document.getElementById('historico').innerHTML += `<div class="bg-slate-800 p-2 text-center rounded">${num}</div>`;
+        }
+
+        function iniciarJogador() {
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('jogador-view').classList.remove('hidden');
+            const lista = document.getElementById('lista-cartelas');
+            for(let i=1; i<=12; i++) {
+                lista.innerHTML += `<div onclick="escolherCartela(${i})" class="glass p-6 rounded-2xl text-center cursor-pointer hover:border-yellow-500 border border-transparent">#${i}</div>`;
+            }
+        }
+
+        function escolherCartela(id) {
+            const nome = document.getElementById('nome-jogador').value;
+            if(!nome) return alert("Digite seu nome!");
+            document.getElementById('setup-jogador').classList.add('hidden');
+            document.getElementById('cartela-ativa').classList.remove('hidden');
+            document.getElementById('titulo-cartela').innerText = `PILOTO: ${nome.toUpperCase()}`;
+            
+            const grid = document.getElementById('grid-numeros');
+            for(let i=0; i<25; i++) {
+                grid.innerHTML += `<div onclick="marcarNumero(this)" class="glass p-4 rounded-lg text-center cursor-pointer font-bold">${Math.floor(Math.random()*75)+1}</div>`;
+            }
+        }
+
+        function marcarNumero(el) {
+            el.classList.toggle('marked');
+            verificarVitoria();
+        }
+
+        function verificarVitoria() {
+            const total = document.querySelectorAll('#grid-numeros > div').length;
+            const marcados = document.querySelectorAll('.marked').length;
+            if(total === marcados) {
+                document.getElementById('vencedor-nome').innerText = document.getElementById('nome-jogador').value + ", VOCÊ VENCEU!";
+                document.getElementById('modal-vitoria').style.display = 'flex';
+            }
+        }
+    </script>
+</body>
+</html>
